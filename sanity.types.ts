@@ -68,9 +68,39 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type Products = {
+export type Order = {
   _id: string;
-  _type: "products";
+  _type: "order";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  orderNumber?: string;
+  stripeCheckoutSessionId?: string;
+  stripeCustomerId?: string;
+  clerkUserId?: string;
+  cutomerName?: string;
+  customerEmail?: string;
+  stripePaymentIntentId?: string;
+  products?: Array<{
+    product?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "product";
+    };
+    quantity?: number;
+    _key: string;
+  }>;
+  total?: number;
+  currency?: string;
+  discountAmount?: number;
+  status?: "pending" | "paid" | "shipped" | "delivered" | "canceled";
+  orderDate?: string;
+};
+
+export type Product = {
+  _id: string;
+  _type: "product";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
@@ -89,7 +119,13 @@ export type Products = {
     crop?: SanityImageCrop;
     _type: "image";
   };
-  category?: "tshirt" | "short" | "jeans" | "hoodie" | "shirt";
+  category?: Array<{
+    _ref: string;
+    _type: "reference";
+    _weak?: boolean;
+    _key: string;
+    [internalGroqTypeReferenceTo]?: "category";
+  }>;
   discountPercent?: number;
   isNew?: boolean;
   isTopSelling?: boolean;
@@ -154,11 +190,80 @@ export type SanityImageMetadata = {
   isOpaque?: boolean;
 };
 
+export type Category = {
+  _id: string;
+  _type: "category";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+};
+
 export type Slug = {
   _type: "slug";
   current?: string;
   source?: string;
 };
 
-export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityFileAsset | Geopoint | Products | SanityImageCrop | SanityImageHotspot | SanityImageAsset | SanityAssetSourceData | SanityImageMetadata | Slug;
+export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityFileAsset | Geopoint | Order | Product | SanityImageCrop | SanityImageHotspot | SanityImageAsset | SanityAssetSourceData | SanityImageMetadata | Category | Slug;
 export declare const internalGroqTypeReferenceTo: unique symbol;
+// Source: ./src/sanity/lib/queries/getCategories.ts
+// Variable: categoryQuery
+// Query: *[_type == "category"] | order(name asc)
+export type CategoryQueryResult = Array<{
+  _id: string;
+  _type: "category";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+}>;
+
+// Source: ./src/sanity/lib/queries/getProducts.ts
+// Variable: productQuery
+// Query: *[_type == "product"] | order(name asc)
+export type ProductQueryResult = Array<{
+  _id: string;
+  _type: "product";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name?: string;
+  slug?: Slug;
+  price?: number;
+  description?: string;
+  image?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  category?: Array<{
+    _ref: string;
+    _type: "reference";
+    _weak?: boolean;
+    _key: string;
+    [internalGroqTypeReferenceTo]?: "category";
+  }>;
+  discountPercent?: number;
+  isNew?: boolean;
+  isTopSelling?: boolean;
+  colors?: Array<string>;
+  sizes?: Array<string>;
+}>;
+
+// Query TypeMap
+import "@sanity/client";
+declare module "@sanity/client" {
+  interface SanityQueries {
+    "*[_type == \"category\"] | order(name asc)": CategoryQueryResult;
+    "*[_type == \"product\"] | order(name asc)": ProductQueryResult;
+  }
+}
